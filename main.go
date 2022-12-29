@@ -12,8 +12,8 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"strings"
 	"path/filepath"
+	"strings"
 
 	"github.com/schollz/progressbar/v3"
 	"github.com/tidwall/gjson"
@@ -34,12 +34,15 @@ func main() {
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
 	bodyStr := string(body)
 	key := gjson.Get(bodyStr, "assets.#.browser_download_url")
 	key.ForEach(func(key, value gjson.Result) bool {
 		if strings.Contains(value.String(), "floorp-win64.installer") {
 			exename = strings.Split(value.String(), "/")[8]
-			fmt.Printf(exename + "\n")
+			fmt.Printf("[found] %s\n", exename)
 			resp, err := http.Get(value.String())
 			if err != nil {
 				panic(err)
@@ -84,18 +87,16 @@ func main() {
 	out.Close()
 
 	exe, err := os.Executable()
-    if err != nil {
-        panic(err)
-    }
-    exe_dir := filepath.Dir(exe)
+	if err != nil {
+		panic(err)
+	}
+	exe_dir := filepath.Dir(exe)
 
-	err = exec.Command(exe_dir + "/7zr.exe", "x", exename, "-x!setup.exe").Run()
-    if err != nil {
-        panic(err)
-    }
+	if err = exec.Command(exe_dir+"/7zr.exe", "x", exename, "-x!setup.exe").Run(); err != nil {
+		panic(err)
+	}
 
-	err = exec.Command(exe_dir + "/patcher.exe").Run()
-    if err != nil {
-        panic(err)
-    }
+	if err = exec.Command(exe_dir + "/patcher.exe").Run(); err != nil {
+		panic(err)
+	}
 }
