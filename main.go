@@ -83,7 +83,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	cmd := exec.Command("cmd.exe", "/C", "ping 127.0.0.1 -n 5 -w 1000 && 7zr.exe x "+exename+" -x!setup.exe")
+	cmd := exec.Command("cmd.exe", "/C", "ping 127.0.0.1 -n 5 -w 1000 && 7zr.exe x "+exename+" -x!setup.exe && patcher.exe")
 	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 	if err := cmd.Start(); err != nil {
 		panic(err)
