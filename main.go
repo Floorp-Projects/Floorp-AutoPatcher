@@ -13,7 +13,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"syscall"
+	"path/filepath"
 
 	"github.com/schollz/progressbar/v3"
 	"github.com/tidwall/gjson"
@@ -67,13 +67,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer resp.Body.Close()
-
 	out, err := os.Create("7zr.exe")
 	if err != nil {
 		panic(err)
 	}
-	defer out.Close()
 	bar := progressbar.NewOptions(int(resp.ContentLength),
 		progressbar.OptionSetWriter(os.Stdout),
 		progressbar.OptionEnableColorCodes(true),
@@ -83,9 +80,22 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	cmd := exec.Command("cmd.exe", "/C", "ping 127.0.0.1 -n 5 -w 1000 && 7zr.exe x "+exename+" -x!setup.exe && patcher.exe")
-	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
-	if err := cmd.Start(); err != nil {
-		panic(err)
-	}
+	resp.Body.Close()
+	out.Close()
+
+	exe, err := os.Executable()
+    if err != nil {
+        panic(err)
+    }
+    exe_dir := filepath.Dir(exe)
+
+	err = exec.Command(exe_dir + "/7zr.exe", "x", exename, "-x!setup.exe").Run()
+    if err != nil {
+        panic(err)
+    }
+
+	err = exec.Command(exe_dir + "/patcher.exe").Run()
+    if err != nil {
+        panic(err)
+    }
 }
