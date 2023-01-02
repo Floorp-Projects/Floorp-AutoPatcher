@@ -6,6 +6,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -22,12 +23,17 @@ import (
 var exename string
 
 func main() {
+	flags := flag.String("t", "", "github token")
+	flag.Parse()
 	req, err := http.NewRequest("GET", "https://api.github.com/repos/Floorp-Projects/Floorp/releases/latest", nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 	req.Header.Set("Accept", "application/vnd.github+json")
-
+	if flag.NFlag() == 1 {
+		fmt.Println("set token")
+		req.Header.Add("authorization", "Bearer "+*flags)
+	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Fatal(err)
